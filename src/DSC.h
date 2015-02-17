@@ -1431,7 +1431,7 @@ namespace DSC {
         /**
          * Moves all the vertices to their destination which can be set by the set_destination() function.
          */
-        void deform(int num_steps = 10)
+        void deform(int num_steps = 50 /*10*/)
         {
 #ifdef DEBUG
             validity_check();
