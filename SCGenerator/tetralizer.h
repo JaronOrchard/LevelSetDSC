@@ -17,7 +17,7 @@
 #pragma once
 
 #include "util.h"
-#include "geometry.h"
+#include "src/geometry.h"
 
 class Tetralizer
 {

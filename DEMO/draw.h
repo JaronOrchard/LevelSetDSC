@@ -17,8 +17,8 @@
 #pragma once
 
 #ifdef _WIN32 // WINDOWS
-#include <GL/glut.h>
 #include <GL/glew.h>
+#include <GL/glut.h>
 #elif defined(__APPLE__) // IOS
 #include <OpenGL/gl3.h>
 #include <GLUT/glut.h>
