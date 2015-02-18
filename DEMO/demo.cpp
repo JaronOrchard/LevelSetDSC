@@ -32,6 +32,7 @@ void printMenu(){
             "1:         Selects rotation.\n"<<
             "2:         Selects smoothing.\n"<<
             "3:         Selects expansion.\n"<<
+            "4:         Selects level set method.\n"<<
             "\n"<<
             "*** START/STOP MOTION ***\n"<<
             "SPACE:     Starts/pauses the current motion.\n"<<

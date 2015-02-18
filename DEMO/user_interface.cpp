@@ -18,6 +18,7 @@
 #include "rotate_function.h"
 #include "average_function.h"
 #include "normal_function.h"
+#include "level_set_function.h"
 
 #include <iostream>
 #include <iomanip>
@@ -242,6 +243,13 @@ void UI::keyboard(unsigned char key, int x, int y) {
             RECORD = true;
             vel_fun = std::unique_ptr<VelocityFunc<>>(new NormalFunc(vel_fun->get_velocity(), vel_fun->get_accuracy()));
             start("expand");
+            break;
+        case '4':
+            stop();
+            QUIT_ON_COMPLETION = true;
+            RECORD = true;
+            vel_fun = std::unique_ptr<VelocityFunc<>>(new LevelSetFunc(vel_fun->get_velocity(), vel_fun->get_accuracy()));
+            start("level_set");
             break;
         case ' ':
             if(!CONTINUOUS)
