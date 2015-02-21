@@ -11,7 +11,113 @@
  */
 class PointCloudFunc: public DSC::VelocityFunc<> {
     
+private:
+
+#ifdef _WIN32
+    const std::string obj_path = "data\\";
+    const std::string log_path = "LOG\\";
+#else
+    const std::string obj_path = "./data/";
+    const std::string log_path = "./LOG/";
+#endif
+
+    std::vector<vec3> point_cloud;
     
+
+    // Variables:
+    std::string point_cloud_file_name = "new\\teapot.obj";
+    real scale_target = 1.1; // Outermost edge of imported .obj should reach this
+    real alpha = 0.3;
+
+
+    void import_point_cloud() {
+        point_cloud.clear();
+        std::cout << "Loading points from " << point_cloud_file_name << "...";
+        std::string filename = obj_path + point_cloud_file_name;
+        std::ifstream fin(filename.data());
+        if (fin.fail()) {
+            std::cout << "FAILED." << std::endl;
+            std::cout << " - Error opening " << point_cloud_file_name << std::endl;
+            std::cout << " - Using default sample points." << std::endl;
+            point_cloud.push_back(vec3(0, 1.5, 0));
+            point_cloud.push_back(vec3(0, -1.5, 0));
+            point_cloud.push_back(vec3(1.5, 0, 0));
+            point_cloud.push_back(vec3(0, 0, 1.5));
+        } else {
+            std::string temp;
+            fin >> temp;
+            while (!fin.eof()) {
+                if (temp == "v") { // Vertex
+                    real x, y, z; // The (x,y,z) coordinates of a vertex.
+                    fin >> x >> y >> z;
+                    point_cloud.push_back(vec3(x, y, z));
+                }
+                fin >> temp;
+            }
+            fin.close();
+            std::cout << "done." << std::endl;
+            std::cout << " - Read in " << point_cloud.size() << " points." << std::endl;
+        }   
+    }
+
+    void normalize_point_cloud() {
+        std::cout << "Normalizing point cloud..." << std::endl;
+        if (point_cloud.empty()) {
+            std::cout << "FAILED." << std::endl;
+            std::cout << " - Error: Point cloud is empty." << std::endl;
+            return;
+        }
+        real min_x = INFINITY;
+        real min_y = INFINITY;
+        real min_z = INFINITY;
+        real max_x = -INFINITY;
+        real max_y = -INFINITY;
+        real max_z = -INFINITY;
+        for (size_t i = 0; i < point_cloud.size(); i++) {
+            min_x = std::min(min_x, point_cloud[i][0]);
+            min_y = std::min(min_y, point_cloud[i][1]);
+            min_z = std::min(min_z, point_cloud[i][2]);
+            max_x = std::max(max_x, point_cloud[i][0]);
+            max_y = std::max(max_y, point_cloud[i][1]);
+            max_z = std::max(max_z, point_cloud[i][2]);
+        }
+        
+        std::cout << "Centering point cloud on the origin..." << std::endl;
+        real x_shift = -((min_x + max_x) / 2);
+        real y_shift = -((min_y + max_y) / 2);
+        real z_shift = -((min_z + max_z) / 2);
+        if (x_shift != 0) {
+            std::cout << " - Shifting x values by " << x_shift << "." << std::endl;
+            for (size_t i = 0; i < point_cloud.size(); i++) {
+                point_cloud[i][0] += x_shift;
+            }
+        }
+        if (y_shift != 0) {
+            std::cout << " - Shifting y values by " << y_shift << "." << std::endl;
+            for (size_t i = 0; i < point_cloud.size(); i++) {
+                point_cloud[i][1] += y_shift;
+            }
+        }
+        if (z_shift != 0) {
+            std::cout << " - Shifting z values by " << z_shift << "." << std::endl;
+            for (size_t i = 0; i < point_cloud.size(); i++) {
+                point_cloud[i][2] += z_shift;
+            }
+        }
+        std::cout << "Scaling point_cloud to a max of " << scale_target << "..." << std::endl;
+        real x_range = (max_x - min_x) / 2;
+        real y_range = (max_y - min_y) / 2;
+        real z_range = (max_z - min_z) / 2;
+        real max_range = std::max(x_range, std::max(y_range, z_range));
+        real scale_factor = scale_target / max_range;
+        std::cout << " - Scaling points by " << scale_factor << "..." << std::endl;
+        for (size_t i = 0; i < point_cloud.size(); i++) {
+            for (size_t j = 0; j < 3; j++) {
+                point_cloud[i][j] *= scale_factor;
+            }
+        }
+    }
+
 public:
     /**
      Creates a velocity function which moves the interface vertices towards a point cloud.
@@ -19,7 +125,9 @@ public:
     PointCloudFunc(real velocity, real accuracy, int max_time_steps = 500) :
         VelocityFunc<>(velocity, accuracy, max_time_steps)
     {
-        
+        import_point_cloud();
+        normalize_point_cloud();
+        std::cout << std::endl;
     }
 
     /**
@@ -39,18 +147,6 @@ public:
         //   Speed(x):     alpha * (Normal [dot] (p - x))
         //                    where p is the closest point in the point cloud to x
         //   Movement(x):  speed(x) * Normal
-
-        real alpha = 0.1;
-
-        std::vector<vec3> point_cloud;
-        vec3 high_point(0, 1.5, 0);
-        vec3 low_point(0, -1.5, 0);
-        vec3 x_point(1.5, 0, 0);
-        vec3 z_point(0, 0, 1.5);
-        point_cloud.push_back(high_point);
-        point_cloud.push_back(low_point);
-        point_cloud.push_back(x_point);
-        point_cloud.push_back(z_point);
 
         auto init_time = std::chrono::system_clock::now();
         vec3 new_pos;
