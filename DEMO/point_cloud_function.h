@@ -35,6 +35,11 @@ public:
      */
     virtual void deform(DSC::DeformableSimplicialComplex<>& dsc)
     {
+        // Formula:
+        //   Speed(x):     alpha * (Normal [dot] (p - x))
+        //                    where p is the closest point in the point cloud to x
+        //   Movement(x):  speed(x) * Normal
+
         real alpha = 0.1;
 
         std::vector<vec3> point_cloud;
@@ -52,6 +57,8 @@ public:
         vec3 p_minus_x;
         real closest_dist;
         vec3 closest_point;
+        vec3 point_normal;
+        real dot_product;
         for(auto nit = dsc.nodes_begin(); nit != dsc.nodes_end(); nit++)
         {
             if(dsc.is_movable(nit.key()))
@@ -66,8 +73,13 @@ public:
                     }
                 }
                 // Calculate the movement vector and set destination:
+                point_normal = dsc.get_normal(nit.key());
                 p_minus_x = closest_point - nit->get_pos();
-                new_pos = alpha*p_minus_x + nit->get_pos();
+                dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
+                //std::cout << "POINT: " << nit->get_pos() << std::endl;
+                //std::cout << "SPEED: " << alpha*dot_product << std::endl;
+                //std::cout << "MOVEMENT: " << (alpha*dot_product)*point_normal << std::endl;
+                new_pos = ((alpha * dot_product) * point_normal) + nit->get_pos();
                 dsc.set_destination(nit.key(), new_pos);
             }
         }
