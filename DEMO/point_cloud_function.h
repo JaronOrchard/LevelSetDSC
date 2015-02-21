@@ -1,5 +1,5 @@
 //
-//  Level set method for the Deformable Simplicial Complex
+//  Point cloud fitting velocity function for the Deformable Simplicial Complex
 //  Created by Jared Saul (2015)
 
 #pragma once
@@ -9,14 +9,14 @@
 /**
  A velocity function which moves the interface vertices towards a point cloud.
  */
-class LevelSetFunc: public DSC::VelocityFunc<> {
+class PointCloudFunc: public DSC::VelocityFunc<> {
     
     
 public:
     /**
      Creates a velocity function which moves the interface vertices towards a point cloud.
      */
-    LevelSetFunc(real velocity, real accuracy, int max_time_steps = 500) :
+    PointCloudFunc(real velocity, real accuracy, int max_time_steps = 500) :
         VelocityFunc<>(velocity, accuracy, max_time_steps)
     {
         
@@ -27,7 +27,7 @@ public:
      */
     virtual std::string get_name() const
     {
-        return std::string("LEVEL SET MOTION");
+        return std::string("POINT CLOUD FITTING");
     }
     
     /**

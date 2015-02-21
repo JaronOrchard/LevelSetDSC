@@ -33,7 +33,7 @@
     <ClInclude Include="..\..\DEMO\user_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DEMO\level_set_function.h">
+    <ClInclude Include="..\..\DEMO\point_cloud_function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

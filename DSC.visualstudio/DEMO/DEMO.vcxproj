@@ -81,7 +81,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\DEMO\average_function.h" />
     <ClInclude Include="..\..\DEMO\draw.h" />
-    <ClInclude Include="..\..\DEMO\level_set_function.h" />
+    <ClInclude Include="..\..\DEMO\point_cloud_function.h" />
     <ClInclude Include="..\..\DEMO\log.h" />
     <ClInclude Include="..\..\DEMO\normal_function.h" />
     <ClInclude Include="..\..\DEMO\rotate_function.h" />
