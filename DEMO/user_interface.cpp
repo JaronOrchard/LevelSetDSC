@@ -271,6 +271,19 @@ void UI::keyboard(unsigned char key, int x, int y) {
             vel_fun->take_time_step(*dsc);
             painter->update(*dsc);
             break;
+        case 'M': {
+            int steps_to_take = 50;
+            std::cout << "MOVE (" << steps_to_take << " steps)" << std::endl;
+            real total_time = 0.;
+            for (int i = 0; i < steps_to_take; i++) {
+                std::cout << "Time step " << (i + 1) << "/" << steps_to_take << ", " << total_time << " sec elapsed so far" << std::endl;
+                vel_fun->take_time_step(*dsc);
+                total_time += vel_fun->get_deform_time();
+            }
+            painter->update(*dsc);
+            std::cout << "Move complete.  Total elapsed time: " << total_time << " sec" << std::endl;
+            break;
+        }
         case 'r':
             std::cout << "RELOAD MODEL" << std::endl;
             load_model(model_file_name, dsc->get_avg_edge_length());
