@@ -153,6 +153,26 @@ void UI::load_model(const std::string& file_name, real discretization)
     
     painter->update(*dsc);
     std::cout << "Loading done" << std::endl << std::endl;
+
+    /*
+    Degenerate edge quality : 0.1
+    Minimum edge quality : 0.5
+    Degenerate face quality : 0.0005
+    Minimum face quality : 0.015
+    Degenerate tet quality : 0.02
+    Minimum tet quality : 0.3
+    Minimum edge length : 0
+    Maximum edge length : 2
+    Minimum face area : 0.2
+    Maximum face area : 5
+    Minimum tet volume : 0.2
+    Maximum tet volume : Infinity
+    */
+    //std::cout << "Setting new parameters..." << std::endl;
+    //parameters old_pars = { 0.1, 0.5, 0.0005, 0.015, 0.02, 0.3, 0., 2., 0.2, 5., 0.2, INFINITY };
+    //parameters new_pars = { 0.1, 0.5, 0.0005, 0.015, 0.03, 0.2, 0., 2., 0.2, 5., 0.2, INFINITY };
+    //dsc->set_parameters(new_pars);
+    
 }
 
 void UI::update_title()
