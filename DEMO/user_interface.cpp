@@ -170,7 +170,8 @@ void UI::display()
         return;
     }
     GLfloat timeValue = glutGet(GLUT_ELAPSED_TIME)*0.0002;
-    vec3 ep( eye_pos[0] * sinf(timeValue), eye_pos[1] * cosf(timeValue) , eye_pos[2] * cosf(timeValue));
+    //vec3 ep( eye_pos[0] * sinf(timeValue), eye_pos[1] * cosf(timeValue) , eye_pos[2] * cosf(timeValue));
+    vec3 ep(eye_pos[0] * sinf(timeValue), eye_pos[1] * cosf(timeValue) * 0.1, eye_pos[2] * cosf(timeValue));
     painter->set_view_position(ep);
     painter->draw();
     glutSwapBuffers();
