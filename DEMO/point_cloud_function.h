@@ -27,7 +27,7 @@ private:
     // Variables:
     std::string point_cloud_file_name = "new\\teapot.obj";
     real scale_target = 1.1; // Outermost edge of imported .obj should reach this
-    real alpha = 0.3;
+    real alpha = 0.2;
 
 
     void import_point_cloud() {
@@ -118,6 +118,55 @@ private:
         }
     }
 
+    real get_angular_defect(DSC::DeformableSimplicialComplex<>& dsc, is_mesh::NodeKey nodeKey) {
+        real pi = 3.141592654;
+        int numFaces = 0;
+        real totalAngles = 0;
+        for (auto f : dsc.get_faces(nodeKey)) {
+            if (dsc.get(f).is_interface()) {
+                real angle;
+                numFaces++;
+                auto faceNodes = dsc.get_nodes(f);
+                vec3 nodePosOrig = dsc.get_pos(nodeKey);
+                vec3 nodePos1 = dsc.get(faceNodes[0]).get_pos();
+                vec3 nodePos2 = dsc.get(faceNodes[1]).get_pos();
+                vec3 nodePos3 = dsc.get(faceNodes[2]).get_pos();
+                vec3 len12 = nodePos2 - nodePos1;
+                vec3 len13 = nodePos3 - nodePos1;
+                vec3 len23 = nodePos3 - nodePos2;
+                if (nodePosOrig == nodePos1) { // Node 1 is Node nodeKey
+                    if (length(len12) >= length(len13) && length(len12) >= length(len23)) {
+                        angle = acos(length(len13) / length(len12)); // 1-2 is hypotenuse
+                    } else if (length(len13) >= length(len23)) {
+                        angle = acos(length(len12) / length(len13)); // 1-3 is hypotenuse
+                    } else {
+                        angle = pi - acos(length(len12) / length(len23)) - acos(length(len13) / length(len23)); // 2-3 is hypotenuse
+                    }
+                }
+                else if (nodePosOrig == nodePos2) { // Node 2 is Node nodeKey
+                    if (length(len12) >= length(len13) && length(len12) >= length(len23)) {
+                        angle = acos(length(len23) / length(len12)); // 1-2 is hypotenuse
+                    } else if (length(len13) >= length(len23)) {
+                        angle = pi - acos(length(len12) / length(len13)) - acos(length(len23) / length(len13)); // 1-3 is hypotenuse
+                    } else {
+                        angle = acos(length(len12) / length(len23)); // 2-3 is hypotenuse
+                    }
+                }
+                else { // Node 3 is Node nodeKey
+                    if (length(len12) >= length(len13) && length(len12) >= length(len23)) {
+                        angle = pi - acos(length(len13) / length(len12)) - acos(length(len23) / length(len12)); // 1-2 is hypotenuse
+                    } else if (length(len13) >= length(len23)) {
+                        angle = acos(length(len23) / length(len13)); // 1-3 is hypotenuse
+                    } else {
+                        angle = acos(length(len13) / length(len23)); // 2-3 is hypotenuse
+                    }
+                }
+                totalAngles += angle;
+            }
+        }
+        return (pi * 2 - totalAngles);
+    }
+
 public:
     /**
      Creates a velocity function which moves the interface vertices towards a point cloud.
@@ -175,7 +224,15 @@ public:
                 //std::cout << "POINT: " << nit->get_pos() << std::endl;
                 //std::cout << "SPEED: " << alpha*dot_product << std::endl;
                 //std::cout << "MOVEMENT: " << (alpha*dot_product)*point_normal << std::endl;
-                new_pos = ((alpha * dot_product) * point_normal) + nit->get_pos();
+                real speed = alpha * dot_product;
+
+                real angular_defect_constant = 0.0025;
+                real angular_defect = get_angular_defect(dsc, nit.key());
+                if (abs(angular_defect) > 0.001) {
+                    speed -= (angular_defect_constant * angular_defect);
+                }
+
+                new_pos = (speed * point_normal) + nit->get_pos();
                 dsc.set_destination(nit.key(), new_pos);
             }
         }
