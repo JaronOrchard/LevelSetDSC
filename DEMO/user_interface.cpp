@@ -26,6 +26,9 @@
 #include <chrono>
 
 using namespace DSC;
+using std::cout;
+using std::endl;
+using std::vector;
 
 void display_(){
     UI::get_instance()->display();
@@ -287,6 +290,75 @@ void UI::keyboard(unsigned char key, int x, int y) {
             }
             CONTINUOUS = !CONTINUOUS;
             break;
+        case 'n': {
+            // Calculate the curvature for all nodes using Implicit Fairing's equation 14.
+            int i = 0;
+            for (auto nit = dsc->nodes_begin(); nit != dsc->nodes_end(); nit++)
+            {
+                if (dsc->is_movable(nit.key()))
+                {
+                    // To perform Implicit Fairing's equation 14, do this for each vertex:
+                    // 1) For each *neighboring* vertex/edge...
+                    // 2) Find angles alpha and beta
+                    // 3) Multiply sum of cotangents by vector x_j - x_i
+                    // 4) Sum all triangles' areas (or sum as you go and divide by 2)
+                    // 5) Divide by 4A and take length of normal as curvature
+                    vec3 sum(0, 0, 0);
+                    real totalArea = 0;
+                    for (auto e : dsc->get_edges(nit.key())) {
+                        if (dsc->get(e).is_interface()) { // For each interface edge around the vertex...
+                            vector<vec3> sixFaceNodes;
+                            for (auto f : dsc->get(e).face_keys()) {
+                                if (dsc->get(f).is_interface()) { // For both interface faces around that edge...
+                                    auto faceNodes = dsc->get_nodes(f);
+                                    vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
+                                    vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
+                                    vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
+                                    sixFaceNodes.push_back(nodePos1);
+                                    sixFaceNodes.push_back(nodePos2);
+                                    sixFaceNodes.push_back(nodePos3);
+                                }
+                            }
+                            // The sixFaceNodes vector should now have 6 node positions in it from the two interface faces around edge e.
+                            // Of [0,1,2] and [3,4,5], two are shared between the sets, and one is unique in both set.
+                            // We can find the alpha and beta nodes by finding the odd node out in both sets of three.
+                            int alphaIdx, betaIdx, otherIdx1, otherIdx2;
+                            if (sixFaceNodes[0] != sixFaceNodes[3] && sixFaceNodes[0] != sixFaceNodes[4] && sixFaceNodes[0] != sixFaceNodes[5]) { alphaIdx = 0; otherIdx1 = 1; otherIdx2 = 2; }
+                            else if (sixFaceNodes[1] != sixFaceNodes[3] && sixFaceNodes[1] != sixFaceNodes[4] && sixFaceNodes[1] != sixFaceNodes[5]) { alphaIdx = 1; otherIdx1 = 0; otherIdx2 = 2; }
+                            else if (sixFaceNodes[2] != sixFaceNodes[3] && sixFaceNodes[2] != sixFaceNodes[4] && sixFaceNodes[2] != sixFaceNodes[5]) { alphaIdx = 2; otherIdx1 = 0; otherIdx2 = 1; }
+                            if (sixFaceNodes[3] != sixFaceNodes[0] && sixFaceNodes[3] != sixFaceNodes[1] && sixFaceNodes[3] != sixFaceNodes[2]) { betaIdx = 3; }
+                            else if (sixFaceNodes[4] != sixFaceNodes[0] && sixFaceNodes[4] != sixFaceNodes[1] && sixFaceNodes[4] != sixFaceNodes[2]) { betaIdx = 4; }
+                            else if (sixFaceNodes[5] != sixFaceNodes[0] && sixFaceNodes[5] != sixFaceNodes[1] && sixFaceNodes[5] != sixFaceNodes[2]) { betaIdx = 5; }
+                            
+                            // x_i is the original node, and x_j is one of the
+                            // two remaining shared nodes of the current edge...
+                            vec3 x_i = dsc->get_pos(nit.key());
+                            vec3 x_j;
+                            if (x_i == sixFaceNodes[otherIdx1]) {
+                                x_j = sixFaceNodes[otherIdx2];
+                            } else {
+                                x_j = sixFaceNodes[otherIdx1];
+                            }
+                            vec3 edgeVec = x_j - x_i;
+
+                            // Compute angles; cotangent is tan(M_PI_2 - angle) (http://stackoverflow.com/questions/3738384/stable-cotangent):
+                            real alphaAngle = Util::angle<real, vec3>(sixFaceNodes[alphaIdx], sixFaceNodes[otherIdx1], sixFaceNodes[otherIdx2]);
+                            real betaAngle = Util::angle<real, vec3>(sixFaceNodes[betaIdx], sixFaceNodes[otherIdx1], sixFaceNodes[otherIdx2]);
+                            edgeVec *= (tan(M_PI_2 - alphaAngle) + tan(M_PI_2 - betaAngle));
+                            sum += edgeVec;
+
+                            // Add area of both faces to total area so far:
+                            totalArea += Util::area<real, vec3>(sixFaceNodes[0], sixFaceNodes[1], sixFaceNodes[2]);
+                            totalArea += Util::area<real, vec3>(sixFaceNodes[3], sixFaceNodes[4], sixFaceNodes[5]);
+                        }
+                    }
+                    totalArea /= 2; // (We added each face's area twice on purpose, so divide by 2 here)
+                    sum /= (4 * totalArea);
+                    cout << "NODE: " << ++i << " | k = " << sum.length() << endl;
+                }
+            }
+            break;
+        }
         case 'm':
             std::cout << "MOVE" << std::endl;
             vel_fun->take_time_step(*dsc);
