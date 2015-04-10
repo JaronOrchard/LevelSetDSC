@@ -290,6 +290,18 @@ void UI::keyboard(unsigned char key, int x, int y) {
             }
             CONTINUOUS = !CONTINUOUS;
             break;
+        case 'c': {
+            int count = 0;
+            for (auto nit = dsc->nodes_begin(); nit != dsc->nodes_end(); nit++)
+            {
+                if (dsc->is_movable(nit.key()))
+                {
+                    count++;
+                }
+            }
+            std::cout << "INTERFACE NODE COUNT: " << count << std::endl;
+            break;
+        }
         case 'n': {
             // Calculate the curvature for all nodes using Implicit Fairing's equation 14.
             int i = 0;
