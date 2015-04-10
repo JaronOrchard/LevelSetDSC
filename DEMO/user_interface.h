@@ -31,7 +31,8 @@ class UI
     std::unique_ptr<Log> basic_log;
     std::unique_ptr<Painter> painter;
     
-    std::string model_file_name = "cube";
+    //std::string model_file_name = "cube9600verts";
+    std::string model_file_name = "sphere";
     
     vec3 eye_pos = {70., 30., 70.};
     vec3 camera_pos = {30., 30., 70.};

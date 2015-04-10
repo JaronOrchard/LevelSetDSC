@@ -174,7 +174,8 @@ void UI::load_model(const std::string& file_name, real discretization)
     //std::cout << "Setting new parameters..." << std::endl;
     //parameters old_pars = { 0.1, 0.5, 0.0005, 0.015, 0.02, 0.3, 0., 2., 0.2, 5., 0.2, INFINITY };
     //parameters new_pars = { 0.1, 0.5, 0.0005, 0.015, 0.03, 0.2, 0., 2., 0.2, 5., 0.2, INFINITY };
-    //dsc->set_parameters(new_pars);
+    //parameters april_pars = { 0.1, 0.5, 0.0005, 0.015, 0.03, 0.2, 0., 2., 0.1, 3., 0.1, INFINITY };
+    //dsc->set_parameters(april_pars);
     
 }
 
@@ -291,15 +292,22 @@ void UI::keyboard(unsigned char key, int x, int y) {
             CONTINUOUS = !CONTINUOUS;
             break;
         case 'c': {
-            int count = 0;
+            int node_count = 0;
+            int face_count = 0;
             for (auto nit = dsc->nodes_begin(); nit != dsc->nodes_end(); nit++)
             {
                 if (dsc->is_movable(nit.key()))
                 {
-                    count++;
+                    node_count++;
                 }
             }
-            std::cout << "INTERFACE NODE COUNT: " << count << std::endl;
+            for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
+                if (dsc->get(fit.key()).is_interface()) {
+                    face_count++;
+                }
+            }
+            std::cout << "INTERFACE NODE COUNT: " << node_count << std::endl;
+            std::cout << "INTERFACE FACE COUNT: " << face_count << std::endl;
             break;
         }
         case 'n': {
@@ -371,13 +379,44 @@ void UI::keyboard(unsigned char key, int x, int y) {
             }
             break;
         }
+        case 'p': { // Split all interface faces whose area is greater than the average
+            int face_count = 0;
+            int split_count = 0;
+            double total_area = 0;
+            for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
+                if (dsc->get(fit.key()).is_interface()) {
+                    face_count++;
+                    auto faceNodes = dsc->get_nodes(fit.key());
+                    vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
+                    vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
+                    vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
+                    total_area += Util::area<real, vec3>(nodePos1, nodePos2, nodePos3);
+                }
+            }
+            double avg_area = total_area / (double)face_count;
+            for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
+                if (dsc->get(fit.key()).is_interface()) {
+                    auto faceNodes = dsc->get_nodes(fit.key());
+                    vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
+                    vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
+                    vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
+                    if (Util::area<real, vec3>(nodePos1, nodePos2, nodePos3) >= avg_area) {
+                        split_count++;
+                        dsc->split(fit.key());
+                    }
+                }
+            }
+            std::cout << "Total area of " << face_count << " interface faces: " << total_area << std::endl;
+            std::cout << "Split " << split_count << " faces with areas >= the average of " << avg_area << std::endl;
+            break;
+        }
         case 'm':
             std::cout << "MOVE" << std::endl;
             vel_fun->take_time_step(*dsc);
             painter->update(*dsc);
             break;
         case 'M': {
-            int steps_to_take = 50;
+            int steps_to_take = 10;
             std::cout << "MOVE (" << steps_to_take << " steps)" << std::endl;
             real total_time = 0.;
             for (int i = 0; i < steps_to_take; i++) {

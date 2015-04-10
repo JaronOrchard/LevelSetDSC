@@ -296,11 +296,11 @@ public:
                 
                 //std::cout << nit.key() << ": " << speed << " | " << get_implicit_fairing_curvature(dsc, nit.key()) << std::endl;
 
-                real implicit_fairing_curvature_constant = 0.00039;
+                /*real implicit_fairing_curvature_constant = 0.00039;
                 real implicit_fairing_curvature = get_implicit_fairing_curvature(dsc, nit.key());
                 if (implicit_fairing_curvature > 0.0001) {
                     speed -= (implicit_fairing_curvature * implicit_fairing_curvature_constant);
-                }
+                }*/
 
                 new_pos = (speed * point_normal) + nit->get_pos();
                 dsc.set_destination(nit.key(), new_pos);
