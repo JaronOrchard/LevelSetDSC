@@ -308,6 +308,8 @@ void UI::keyboard(unsigned char key, int x, int y) {
             }
             std::cout << "INTERFACE NODE COUNT: " << node_count << std::endl;
             std::cout << "INTERFACE FACE COUNT: " << face_count << std::endl;
+            std::cout << "AVERAGE EDGE LENGTH: " << dsc->get_avg_edge_length() << std::endl;
+            std::cout << std::endl;
             break;
         }
         case 'n': {
@@ -406,8 +408,11 @@ void UI::keyboard(unsigned char key, int x, int y) {
                     }
                 }
             }
+            dsc->set_avg_edge_length();
             std::cout << "Total area of " << face_count << " interface faces: " << total_area << std::endl;
             std::cout << "Split " << split_count << " faces with areas >= the average of " << avg_area << std::endl;
+            std::cout << "Average edge length reset to " << dsc->get_avg_edge_length() << std::endl;
+            std::cout << std::endl;
             break;
         }
         case 'm':
@@ -416,7 +421,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
             painter->update(*dsc);
             break;
         case 'M': {
-            int steps_to_take = 10;
+            int steps_to_take = 50;
             std::cout << "MOVE (" << steps_to_take << " steps)" << std::endl;
             real total_time = 0.;
             for (int i = 0; i < steps_to_take; i++) {
