@@ -20,7 +20,8 @@
 using namespace std;
 
 #ifdef _WIN32
-const std::string file_path = "@PROJECT_SOURCE_DIR@/data/";
+//const std::string file_path = "@PROJECT_SOURCE_DIR@/data/";
+const std::string file_path = "data\\";
 #else
 const std::string file_path = "./data/";
 #endif
