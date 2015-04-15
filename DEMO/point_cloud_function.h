@@ -25,7 +25,7 @@ private:
     
 
     // Variables:
-    std::string point_cloud_file_name = "new\\teapot.obj";
+    std::string point_cloud_file_name = "new\\cow.obj";
     real scale_target = 1.1; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
 
@@ -249,6 +249,39 @@ public:
         return std::string("POINT CLOUD FITTING");
     }
     
+    virtual void analyze_result(DSC::DeformableSimplicialComplex<>& dsc) {
+        real closest_dist;
+        int num_points = 0;
+        real min_dist = 999;
+        real max_dist = 0;
+        real total_dist = 0;
+
+        for (auto nit = dsc.nodes_begin(); nit != dsc.nodes_end(); nit++)
+        {
+            if (dsc.is_movable(nit.key()))
+            {
+                num_points++;
+                // Find the closest point in the point cloud:
+                closest_dist = (point_cloud[0] - nit->get_pos()).length();
+                for (size_t i = 1; i < point_cloud.size(); i++) {
+                    if ((point_cloud[i] - nit->get_pos()).length() < closest_dist) {
+                        closest_dist = (point_cloud[i] - nit->get_pos()).length();
+                    }
+                }
+                //std::cout << num_points << ": " << closest_dist << std::endl;
+                total_dist += closest_dist;
+                if (closest_dist < min_dist) { min_dist = closest_dist; }
+                if (closest_dist > max_dist) { max_dist = closest_dist; }
+            }
+        }
+        std::cout << "ANALYZING POINT CLOUD FUNCTION:" << std::endl;
+        std::cout << " - Minimum vertex/point distance: " << min_dist << std::endl;
+        std::cout << " - Maximum vertex/point distance: " << max_dist << std::endl;
+        std::cout << " - Average vertex/point distance: " << (total_dist / (double)num_points) << std::endl;
+        std::cout << "     (" << total_dist << " distance over " << num_points << " vertices)" << std::endl;
+        std::cout << std::endl;
+    }
+
     /**
      Computes the motion of each interface vertex and stores the new position in new_pos in the simplicial complex class.
      */
@@ -296,11 +329,13 @@ public:
                 
                 //std::cout << nit.key() << ": " << speed << " | " << get_implicit_fairing_curvature(dsc, nit.key()) << std::endl;
 
-                /*real implicit_fairing_curvature_constant = 0.00039;
+                /*
+                real implicit_fairing_curvature_constant = 0.0003;
                 real implicit_fairing_curvature = get_implicit_fairing_curvature(dsc, nit.key());
                 if (implicit_fairing_curvature > 0.0001) {
                     speed -= (implicit_fairing_curvature * implicit_fairing_curvature_constant);
-                }*/
+                }
+                /**/
 
                 new_pos = (speed * point_normal) + nit->get_pos();
                 dsc.set_destination(nit.key(), new_pos);

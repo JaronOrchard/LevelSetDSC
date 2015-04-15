@@ -227,6 +227,15 @@ namespace DSC {
             dsc.test_flip44();
             dsc.test_flip22();
         }
+
+        /**
+         * Prints some data analyzing the result of the current mesh.
+         * Used by point_cloud_function.h to report on how close
+         * the mesh has conformed to the point cloud
+         */
+        virtual void analyze_result(DeformableSimplicialComplex& dsc) {
+            std::cout << "** ANALYZE_RESULT NOT IMPLEMENTED **" << std::endl;
+        }
         
     };
     

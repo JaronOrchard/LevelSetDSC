@@ -171,11 +171,11 @@ void UI::load_model(const std::string& file_name, real discretization)
     Minimum tet volume : 0.2
     Maximum tet volume : Infinity
     */
-    //std::cout << "Setting new parameters..." << std::endl;
+    std::cout << "Setting new parameters..." << std::endl << std::endl;
     //parameters old_pars = { 0.1, 0.5, 0.0005, 0.015, 0.02, 0.3, 0., 2., 0.2, 5., 0.2, INFINITY };
-    //parameters new_pars = { 0.1, 0.5, 0.0005, 0.015, 0.03, 0.2, 0., 2., 0.2, 5., 0.2, INFINITY };
+    parameters new_pars = { 0.1, 0.5, 0.0005, 0.015, 0.03, 0.2, 0., 2., 0.2, 5., 0.2, INFINITY };
     //parameters april_pars = { 0.1, 0.5, 0.0005, 0.015, 0.03, 0.2, 0., 2., 0.1, 3., 0.1, INFINITY };
-    //dsc->set_parameters(april_pars);
+    dsc->set_parameters(new_pars);
     
 }
 
@@ -309,6 +309,8 @@ void UI::keyboard(unsigned char key, int x, int y) {
             std::cout << "INTERFACE NODE COUNT: " << node_count << std::endl;
             std::cout << "INTERFACE FACE COUNT: " << face_count << std::endl;
             std::cout << "AVERAGE EDGE LENGTH: " << dsc->get_avg_edge_length() << std::endl;
+            std::cout << std::endl;
+            vel_fun->analyze_result(*dsc);
             std::cout << std::endl;
             break;
         }
