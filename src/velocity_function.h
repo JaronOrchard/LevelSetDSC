@@ -236,6 +236,15 @@ namespace DSC {
         virtual void analyze_result(DeformableSimplicialComplex& dsc) {
             std::cout << "** ANALYZE_RESULT NOT IMPLEMENTED **" << std::endl;
         }
+
+        /**
+         * Prints some data regarding the the speed of an interface
+         * face's centroid compared to the speed of its vertices
+         * in an attempt to do adaptive resolution face splitting
+         */
+        virtual void print_face_speed_stats(DeformableSimplicialComplex& dsc, bool split) {
+            std::cout << "** PRINT_FACE_SPEED_STATS NOT IMPLEMENTED **" << std::endl;
+        }
         
     };
     

@@ -417,6 +417,12 @@ void UI::keyboard(unsigned char key, int x, int y) {
             std::cout << std::endl;
             break;
         }
+        case 'o':
+            vel_fun->print_face_speed_stats(*dsc, false);
+            break;
+        case 'O':
+            vel_fun->print_face_speed_stats(*dsc, true);
+            break;
         case 'm':
             std::cout << "MOVE" << std::endl;
             vel_fun->take_time_step(*dsc);
@@ -430,6 +436,9 @@ void UI::keyboard(unsigned char key, int x, int y) {
                 std::cout << "Time step " << (i + 1) << "/" << steps_to_take << ", " << total_time << " sec elapsed so far" << std::endl;
                 vel_fun->take_time_step(*dsc);
                 total_time += vel_fun->get_deform_time();
+                if (i % 10 == 9) {
+                    vel_fun->print_face_speed_stats(*dsc, true);
+                }
             }
             painter->update(*dsc);
             std::cout << "Move complete.  Total elapsed time: " << total_time << " sec" << std::endl;

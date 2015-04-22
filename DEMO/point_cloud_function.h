@@ -25,8 +25,8 @@ private:
     
 
     // Variables:
-    std::string point_cloud_file_name = "new\\cow.obj";
-    real scale_target = 1.1; // Outermost edge of imported .obj should reach this
+    std::string point_cloud_file_name = "new\\teapot.obj";
+    real scale_target = 0.9; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
 
 
@@ -280,6 +280,113 @@ public:
         std::cout << " - Average vertex/point distance: " << (total_dist / (double)num_points) << std::endl;
         std::cout << "     (" << total_dist << " distance over " << num_points << " vertices)" << std::endl;
         std::cout << std::endl;
+    }
+
+    virtual void print_face_speed_stats(DSC::DeformableSimplicialComplex<>& dsc, bool split) {
+        
+        // This could benefit from a bunch of refactoring...
+        // Specifically a method that returns closest point index for a node...
+        
+        vec3 closest_point;
+        real closest_dist;
+        vec3 point_normal;
+        real dot_product;
+        vec3 p_minus_x;
+        real speed1, speed2, speed3, speedCentroid;
+        int faces_split = 0;
+
+        for (auto fit = dsc.faces_begin(); fit != dsc.faces_end(); fit++) {
+            if (dsc.get(fit.key()).is_interface()) {
+                auto faceNodes = dsc.get_nodes(fit.key());
+                vec3 nodePos1 = dsc.get(faceNodes[0]).get_pos();
+                vec3 nodePos2 = dsc.get(faceNodes[1]).get_pos();
+                vec3 nodePos3 = dsc.get(faceNodes[2]).get_pos();
+                vec3 nodePosCentroid = (nodePos1 + nodePos2 + nodePos3) / 3;
+
+                // Calculate the speed for the face's first vertex:
+                closest_point = point_cloud[0];
+                closest_dist = (closest_point - nodePos1).length();
+                for (size_t i = 1; i < point_cloud.size(); i++) {
+                    if ((point_cloud[i] - nodePos1).length() < closest_dist) {
+                        closest_point = point_cloud[i];
+                        closest_dist = (closest_point - nodePos1).length();
+                    }
+                }
+                point_normal = dsc.get_normal(faceNodes[0]);
+                p_minus_x = closest_point - nodePos1;
+                dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
+                speed1 = alpha * dot_product;
+
+                // Calculate the speed for the face's second vertex:
+                closest_point = point_cloud[0];
+                closest_dist = (closest_point - nodePos2).length();
+                for (size_t i = 1; i < point_cloud.size(); i++) {
+                    if ((point_cloud[i] - nodePos2).length() < closest_dist) {
+                        closest_point = point_cloud[i];
+                        closest_dist = (closest_point - nodePos2).length();
+                    }
+                }
+                point_normal = dsc.get_normal(faceNodes[1]);
+                p_minus_x = closest_point - nodePos2;
+                dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
+                speed2 = alpha * dot_product;
+
+                // Calculate the speed for the face's third vertex:
+                closest_point = point_cloud[0];
+                closest_dist = (closest_point - nodePos3).length();
+                for (size_t i = 1; i < point_cloud.size(); i++) {
+                    if ((point_cloud[i] - nodePos3).length() < closest_dist) {
+                        closest_point = point_cloud[i];
+                        closest_dist = (closest_point - nodePos3).length();
+                    }
+                }
+                point_normal = dsc.get_normal(faceNodes[2]);
+                p_minus_x = closest_point - nodePos3;
+                dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
+                speed3 = alpha * dot_product;
+                
+                // Calculate the speed for the face's first vertex:
+                closest_point = point_cloud[0];
+                closest_dist = (closest_point - nodePosCentroid).length();
+                for (size_t i = 1; i < point_cloud.size(); i++) {
+                    if ((point_cloud[i] - nodePosCentroid).length() < closest_dist) {
+                        closest_point = point_cloud[i];
+                        closest_dist = (closest_point - nodePosCentroid).length();
+                    }
+                }
+                point_normal = dsc.get_normal(fit.key());
+                p_minus_x = closest_point - nodePosCentroid;
+                dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
+                speedCentroid = alpha * dot_product;
+
+                if (!split) {
+                    std::cout
+                        << "FACE SPEEDS:" << std::endl
+                        << "  Vertex 1: " << speed1 << std::endl
+                        << "  Vertex 2: " << speed2 << std::endl
+                        << "  Vertex 3: " << speed3 << std::endl
+                        << "  Centroid: " << speedCentroid << std::endl;
+                }
+                else {
+                    real max_vertex_speed = 0.0001;
+                    real min_centroid_speed = 0.001;
+                    if (abs(speed1) < max_vertex_speed && abs(speed2) < max_vertex_speed &&
+                            abs(speed3) < max_vertex_speed && abs(speedCentroid) > min_centroid_speed) {
+                        std::cout
+                            << "SPLITTING FACE WITH SPEEDS:" << std::endl
+                            << "  Vertex 1: " << speed1 << std::endl
+                            << "  Vertex 2: " << speed2 << std::endl
+                            << "  Vertex 3: " << speed3 << std::endl
+                            << "  Centroid: " << speedCentroid << std::endl;
+                        dsc.split(fit.key());
+                        faces_split++;
+                    }
+                }
+            }
+        }
+        if (split) {
+            std::cout << "** " << faces_split << " TOTAL FACES SPLIT **" << std::endl << std::endl;
+        }
     }
 
     /**

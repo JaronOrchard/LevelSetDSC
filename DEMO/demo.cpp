@@ -47,7 +47,14 @@ void printMenu(){
             "e:         Export the simplicial complex to a .dsc file.\n"<<
             "i:         Export the surface mesh to a .obj file.\n"<<
             "w:         Switch wireframe rendering on and off.\n"<<
-            "TAB:       Switches the display type (Surface, wireframe, edges, etc.).\n"<<endl;
+            "TAB:       Switches the display type (Surface, wireframe, edges, etc.).\n" <<
+            "\n"<<
+            "*** ADDED ***\n" <<
+            "c:         List node/face count and analyze cloud convergence\n"<<
+            "p:         Split all interface faces whose area is > avg area\n"<<
+            "M (caps):  Take multiple time steps at once\n"<<
+            "o:         Print speed of face centroids/vertices\n"<<
+            "O (caps):  Split faces with fast centroids/slow verts\n"<<endl;
 }
 
 int main(int argc, char** argv)
