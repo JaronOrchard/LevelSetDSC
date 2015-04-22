@@ -385,7 +385,13 @@ public:
             }
         }
         if (split) {
-            std::cout << "** " << faces_split << " TOTAL FACES SPLIT **" << std::endl << std::endl;
+            std::cout << "** " << faces_split << " TOTAL FACES SPLIT **" << std::endl;
+            if (faces_split > 0) {
+                std::cout << "** Average edge length: " << dsc.get_avg_edge_length();
+                dsc.set_avg_edge_length();
+                std::cout << " -> " << dsc.get_avg_edge_length() << std::endl;
+            }
+            std::cout << std::endl;
         }
     }
 
