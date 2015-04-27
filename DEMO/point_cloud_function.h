@@ -249,6 +249,23 @@ public:
         return std::string("POINT CLOUD FITTING");
     }
     
+    /**
+     * Returns a vec3 representing the closest point cloud point.
+     */
+    vec3 get_closest_point(vec3 point) {
+        vec3 closest_point;
+        real closest_dist;
+        closest_point = point_cloud[0];
+        closest_dist = (closest_point - point).length();
+        for (size_t i = 1; i < point_cloud.size(); i++) {
+            if ((point_cloud[i] - point).length() < closest_dist) {
+                closest_point = point_cloud[i];
+                closest_dist = (closest_point - point).length();
+            }
+        }
+        return closest_point;
+    }
+
     virtual void analyze_result(DSC::DeformableSimplicialComplex<>& dsc) {
         real closest_dist;
         int num_points = 0;
@@ -262,13 +279,7 @@ public:
             {
                 num_points++;
                 // Find the closest point in the point cloud:
-                closest_dist = (point_cloud[0] - nit->get_pos()).length();
-                for (size_t i = 1; i < point_cloud.size(); i++) {
-                    if ((point_cloud[i] - nit->get_pos()).length() < closest_dist) {
-                        closest_dist = (point_cloud[i] - nit->get_pos()).length();
-                    }
-                }
-                //std::cout << num_points << ": " << closest_dist << std::endl;
+                closest_dist = (get_closest_point(nit->get_pos()) - nit->get_pos()).length();
                 total_dist += closest_dist;
                 if (closest_dist < min_dist) { min_dist = closest_dist; }
                 if (closest_dist > max_dist) { max_dist = closest_dist; }
@@ -287,8 +298,6 @@ public:
         // This could benefit from a bunch of refactoring...
         // Specifically a method that returns closest point index for a node...
         
-        vec3 closest_point;
-        real closest_dist;
         vec3 point_normal;
         real dot_product;
         vec3 p_minus_x;
@@ -304,58 +313,26 @@ public:
                 vec3 nodePosCentroid = (nodePos1 + nodePos2 + nodePos3) / 3;
 
                 // Calculate the speed for the face's first vertex:
-                closest_point = point_cloud[0];
-                closest_dist = (closest_point - nodePos1).length();
-                for (size_t i = 1; i < point_cloud.size(); i++) {
-                    if ((point_cloud[i] - nodePos1).length() < closest_dist) {
-                        closest_point = point_cloud[i];
-                        closest_dist = (closest_point - nodePos1).length();
-                    }
-                }
                 point_normal = dsc.get_normal(faceNodes[0]);
-                p_minus_x = closest_point - nodePos1;
+                p_minus_x = get_closest_point(nodePos1) - nodePos1;
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
                 speed1 = alpha * dot_product;
 
                 // Calculate the speed for the face's second vertex:
-                closest_point = point_cloud[0];
-                closest_dist = (closest_point - nodePos2).length();
-                for (size_t i = 1; i < point_cloud.size(); i++) {
-                    if ((point_cloud[i] - nodePos2).length() < closest_dist) {
-                        closest_point = point_cloud[i];
-                        closest_dist = (closest_point - nodePos2).length();
-                    }
-                }
                 point_normal = dsc.get_normal(faceNodes[1]);
-                p_minus_x = closest_point - nodePos2;
+                p_minus_x = get_closest_point(nodePos2) - nodePos2;
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
                 speed2 = alpha * dot_product;
 
                 // Calculate the speed for the face's third vertex:
-                closest_point = point_cloud[0];
-                closest_dist = (closest_point - nodePos3).length();
-                for (size_t i = 1; i < point_cloud.size(); i++) {
-                    if ((point_cloud[i] - nodePos3).length() < closest_dist) {
-                        closest_point = point_cloud[i];
-                        closest_dist = (closest_point - nodePos3).length();
-                    }
-                }
                 point_normal = dsc.get_normal(faceNodes[2]);
-                p_minus_x = closest_point - nodePos3;
+                p_minus_x = get_closest_point(nodePos3) - nodePos3;
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
                 speed3 = alpha * dot_product;
                 
                 // Calculate the speed for the face's first vertex:
-                closest_point = point_cloud[0];
-                closest_dist = (closest_point - nodePosCentroid).length();
-                for (size_t i = 1; i < point_cloud.size(); i++) {
-                    if ((point_cloud[i] - nodePosCentroid).length() < closest_dist) {
-                        closest_point = point_cloud[i];
-                        closest_dist = (closest_point - nodePosCentroid).length();
-                    }
-                }
                 point_normal = dsc.get_normal(fit.key());
-                p_minus_x = closest_point - nodePosCentroid;
+                p_minus_x = get_closest_point(nodePosCentroid) - nodePosCentroid;
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
                 speedCentroid = alpha * dot_product;
 
@@ -408,26 +385,15 @@ public:
         auto init_time = std::chrono::system_clock::now();
         vec3 new_pos;
         vec3 p_minus_x;
-        real closest_dist;
-        vec3 closest_point;
         vec3 point_normal;
         real dot_product;
         for(auto nit = dsc.nodes_begin(); nit != dsc.nodes_end(); nit++)
         {
             if(dsc.is_movable(nit.key()))
             {
-                // Find the closest point in the point cloud:
-                closest_point = point_cloud[0];
-                closest_dist = (closest_point - nit->get_pos()).length();
-                for (size_t i = 1; i < point_cloud.size(); i++) {
-                    if ((point_cloud[i] - nit->get_pos()).length() < closest_dist) {
-                        closest_point = point_cloud[i];
-                        closest_dist = (closest_point - nit->get_pos()).length();
-                    }
-                }
-                // Calculate the movement vector and set destination:
+                // Find the closest point in the point cloud, calculate the movement vector, and set destination:
                 point_normal = dsc.get_normal(nit.key());
-                p_minus_x = closest_point - nit->get_pos();
+                p_minus_x = get_closest_point(nit->get_pos()) - nit->get_pos();
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
                 //std::cout << "POINT: " << nit->get_pos() << std::endl;
                 //std::cout << "SPEED: " << alpha*dot_product << std::endl;
