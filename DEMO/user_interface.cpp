@@ -437,7 +437,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
                 vel_fun->take_time_step(*dsc);
                 total_time += vel_fun->get_deform_time();
                 if (i % 10 == 9) {
-                    vel_fun->print_face_speed_stats(*dsc, true);
+                //    vel_fun->print_face_speed_stats(*dsc, true);
                 }
             }
             painter->update(*dsc);

@@ -28,7 +28,10 @@ private:
     std::string point_cloud_file_name = "new\\teapot.obj";
     real scale_target = 0.9; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
-
+    bool useAngularDefect = false;
+    real angular_defect_constant = 0.0025;
+    bool useImplicitFairing = true;
+    real implicit_fairing_curvature_constant = 0.0003;
 
     void import_point_cloud() {
         point_cloud.clear();
@@ -167,7 +170,7 @@ private:
         return (pi * 2 - totalAngles);
     }
 
-    real get_implicit_fairing_curvature(DSC::DeformableSimplicialComplex<>& dsc, is_mesh::NodeKey nodeKey) {
+    vec3 get_implicit_fairing_curvature(DSC::DeformableSimplicialComplex<>& dsc, is_mesh::NodeKey nodeKey) {
         // To perform Implicit Fairing's equation 14, do this for the vertex:
         // 1) For each *neighboring* vertex/edge...
         // 2) Find angles alpha and beta
@@ -226,7 +229,7 @@ private:
         }
         totalArea /= 2; // (We added each face's area twice on purpose, so divide by 2 here)
         sum /= (4 * totalArea);
-        return sum.length();
+        return sum;
     }
 
 public:
@@ -412,36 +415,38 @@ public:
         vec3 p_minus_x;
         vec3 point_normal;
         real dot_product;
+        vec3 implicit_fairing_result;
+
         for(auto nit = dsc.nodes_begin(); nit != dsc.nodes_end(); nit++)
         {
-            if(dsc.is_movable(nit.key()))
+            if (dsc.is_movable(nit.key()))
             {
                 // Find the closest point in the point cloud, calculate the movement vector, and set destination:
-                point_normal = dsc.get_normal(nit.key());
+                if (useImplicitFairing) {
+                    implicit_fairing_result = get_implicit_fairing_curvature(dsc, nit.key());
+                    if (implicit_fairing_result.length() > 0.0001) {
+                        point_normal = (implicit_fairing_result * -1) / implicit_fairing_result.length();
+                    } else {
+                        point_normal = dsc.get_normal(nit.key());
+                    }
+                } else {
+                    point_normal = dsc.get_normal(nit.key());
+                }
                 p_minus_x = get_closest_point(nit->get_pos()) - nit->get_pos();
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
-                //std::cout << "POINT: " << nit->get_pos() << std::endl;
-                //std::cout << "SPEED: " << alpha*dot_product << std::endl;
-                //std::cout << "MOVEMENT: " << (alpha*dot_product)*point_normal << std::endl;
                 real speed = alpha * dot_product;
 
-                /*real angular_defect_constant = 0.0025;
-                real angular_defect = get_angular_defect(dsc, nit.key());
-                if (abs(angular_defect) > 0.001) {
-                    speed -= (angular_defect_constant * angular_defect);
-                }*/
-                
-                //std::cout << nit.key() << ": " << speed << " | " << get_implicit_fairing_curvature(dsc, nit.key()) << std::endl;
-
-                /*
-                real implicit_fairing_curvature_constant = 0.0003;
-                real implicit_fairing_curvature = get_implicit_fairing_curvature(dsc, nit.key());
-                if (implicit_fairing_curvature > 0.0001) {
-                    speed -= (implicit_fairing_curvature * implicit_fairing_curvature_constant);
+                if (useAngularDefect) { // Angular defect curvature
+                    real angular_defect = get_angular_defect(dsc, nit.key());
+                    if (abs(angular_defect) > 0.001) {
+                        speed -= (angular_defect_constant * angular_defect);
+                    }
+                    new_pos = (speed * point_normal) + nit->get_pos();
+                } else if (useImplicitFairing) { // Implicit fairing curvature
+                    new_pos = (speed * point_normal) + (implicit_fairing_curvature_constant * implicit_fairing_result) + nit->get_pos();
+                } else { // No curvature
+                    new_pos = (speed * point_normal) + nit->get_pos();
                 }
-                /**/
-
-                new_pos = (speed * point_normal) + nit->get_pos();
                 dsc.set_destination(nit.key(), new_pos);
             }
         }
