@@ -54,7 +54,8 @@ void printMenu(){
             "p:         Split all interface faces whose area is > avg area\n"<<
             "M (caps):  Take multiple time steps at once\n"<<
             "o:         Print speed of face centroids/vertices\n"<<
-            "O (caps):  Split faces with fast centroids/slow verts\n"<<endl;
+            "O (caps):  Split faces with fast centroids/slow verts\n"<<
+            "I (caps):  Write points/speed/curvature to file\n"<<endl;
 }
 
 int main(int argc, char** argv)

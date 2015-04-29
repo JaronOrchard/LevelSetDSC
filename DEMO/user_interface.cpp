@@ -483,6 +483,10 @@ void UI::keyboard(unsigned char key, int x, int y) {
             is_mesh::export_surface_mesh(filename, points, faces);
         }
             break;
+        case 'I': {
+            vel_fun->write_data_files(*dsc);
+        }
+            break;
         case '+':
         {
             real velocity = std::min(vel_fun->get_velocity() + 1., 100.);

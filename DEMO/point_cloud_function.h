@@ -372,6 +372,31 @@ public:
         }
     }
 
+    virtual void write_data_files(DSC::DeformableSimplicialComplex<>& dsc) {
+        std::string filename("data/speed_curvature_data.txt");
+        std::ofstream output_file;
+        output_file.open(filename.data());
+        output_file << "x_coord,y_coord,z_coord,speed,curvature" << std::endl;
+
+        vec3 p_minus_x;
+        vec3 point_normal;
+        real dot_product;
+        for (auto nit = dsc.nodes_begin(); nit != dsc.nodes_end(); nit++)
+        {
+            if (dsc.is_movable(nit.key()))
+            {
+                point_normal = dsc.get_normal(nit.key());
+                p_minus_x = get_closest_point(nit->get_pos()) - nit->get_pos();
+                dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
+                real speed = alpha * dot_product;
+                output_file << nit->get_pos()[0] << "," << nit->get_pos()[1] << "," << nit->get_pos()[2] << ","
+                        << speed << "," << get_implicit_fairing_curvature(dsc, nit.key()) << std::endl;
+            }
+        }
+
+        output_file.close();
+    }
+
     /**
      Computes the motion of each interface vertex and stores the new position in new_pos in the simplicial complex class.
      */

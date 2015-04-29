@@ -245,6 +245,13 @@ namespace DSC {
         virtual void print_face_speed_stats(DeformableSimplicialComplex& dsc, bool split) {
             std::cout << "** PRINT_FACE_SPEED_STATS NOT IMPLEMENTED **" << std::endl;
         }
+
+        /**
+         * Writes data files such as speed and curvature
+         */
+        virtual void write_data_files(DeformableSimplicialComplex& dsc) {
+            std::cout << "** WRITE_DATA_FILES NOT IMPLEMENTED **" << std::endl;
+        }
         
     };
     
