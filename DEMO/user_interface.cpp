@@ -429,7 +429,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
             painter->update(*dsc);
             break;
         case 'M': {
-            int steps_to_take = 50;
+            int steps_to_take = 100;
             std::cout << "MOVE (" << steps_to_take << " steps)" << std::endl;
             real total_time = 0.;
             for (int i = 0; i < steps_to_take; i++) {
@@ -437,7 +437,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
                 vel_fun->take_time_step(*dsc);
                 total_time += vel_fun->get_deform_time();
                 if (i % 10 == 9) {
-                //    vel_fun->print_face_speed_stats(*dsc, true);
+                    vel_fun->print_face_speed_stats(*dsc, true);
                 }
             }
             painter->update(*dsc);
@@ -484,6 +484,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
         }
             break;
         case 'I': {
+            std::cout << "EXPORTING SPEED AND CURVATURE DATA" << std::endl;
             vel_fun->write_data_files(*dsc);
         }
             break;

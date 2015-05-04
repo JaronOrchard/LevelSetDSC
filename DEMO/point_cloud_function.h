@@ -348,8 +348,8 @@ public:
                         << "  Centroid: " << speedCentroid << std::endl;
                 }
                 else {
-                    real max_vertex_speed = 0.0001;
-                    real min_centroid_speed = 0.001;
+                    real max_vertex_speed = 0.0015; // Vertex speed must be less than this to split face
+                    real min_centroid_speed = 0.0015; // Centroid speed must be higher than this to split face
                     if (abs(speed1) < max_vertex_speed && abs(speed2) < max_vertex_speed &&
                             abs(speed3) < max_vertex_speed && abs(speedCentroid) > min_centroid_speed) {
                         std::cout
@@ -396,8 +396,19 @@ public:
                         << speed << "," << get_implicit_fairing_curvature(dsc, nit.key()) << std::endl;
             }
         }
-
         output_file.close();
+
+        // This code prints the scaled point cloud and nothing more.
+        /*
+        std::string filename("data/scaled_point_cloud.txt");
+        std::ofstream output_file;
+        output_file.open(filename.data());
+        output_file << "x_coord,y_coord,z_coord" << std::endl;
+        for (size_t i = 0; i < point_cloud.size(); i++) {
+            output_file << point_cloud[i][0] << "," << point_cloud[i][1] << "," << point_cloud[i][2] << std::endl;
+        }
+        output_file.close();
+        */
     }
 
     /**
