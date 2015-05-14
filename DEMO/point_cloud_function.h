@@ -352,12 +352,14 @@ public:
                     real min_centroid_speed = 0.0015; // Centroid speed must be higher than this to split face
                     if (abs(speed1) < max_vertex_speed && abs(speed2) < max_vertex_speed &&
                             abs(speed3) < max_vertex_speed && abs(speedCentroid) > min_centroid_speed) {
+                        /*
                         std::cout
                             << "SPLITTING FACE WITH SPEEDS:" << std::endl
                             << "  Vertex 1: " << speed1 << std::endl
                             << "  Vertex 2: " << speed2 << std::endl
                             << "  Vertex 3: " << speed3 << std::endl
                             << "  Centroid: " << speedCentroid << std::endl;
+                        */
                         dsc.split(fit.key());
                         faces_split++;
                     }
