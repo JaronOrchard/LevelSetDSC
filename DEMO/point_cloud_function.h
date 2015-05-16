@@ -25,7 +25,7 @@ private:
     
 
     // Variables:
-    std::string point_cloud_file_name = "new\\teapot.obj";
+    std::string point_cloud_file_name = "new\\bunny.obj";
     real scale_target = 0.9; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
     bool useAngularDefect = false;
@@ -298,9 +298,8 @@ public:
 
     virtual void print_face_speed_stats(DSC::DeformableSimplicialComplex<>& dsc, bool split) {
         
-        // This could benefit from a bunch of refactoring...
-        // Specifically a method that returns closest point index for a node...
-        
+        if (split) { std::cout << "** PERFORMING ADAPTIVE SPLITTING **" << std::endl; }
+
         vec3 point_normal;
         real dot_product;
         vec3 p_minus_x;
@@ -375,6 +374,41 @@ public:
             }
             std::cout << std::endl;
         }
+    }
+
+    virtual void split_larger_than_average_interface_faces(DSC::DeformableSimplicialComplex<>& dsc) {
+        std::cout << "** SPLITTING LARGER-THAN-AVERAGE INTERFACE FACES **" << std::endl;
+        int face_count = 0;
+        int split_count = 0;
+        double total_area = 0;
+        for (auto fit = dsc.faces_begin(); fit != dsc.faces_end(); fit++) {
+            if (dsc.get(fit.key()).is_interface()) {
+                face_count++;
+                auto faceNodes = dsc.get_nodes(fit.key());
+                vec3 nodePos1 = dsc.get(faceNodes[0]).get_pos();
+                vec3 nodePos2 = dsc.get(faceNodes[1]).get_pos();
+                vec3 nodePos3 = dsc.get(faceNodes[2]).get_pos();
+                total_area += Util::area<real, vec3>(nodePos1, nodePos2, nodePos3);
+            }
+        }
+        double avg_area = total_area / (double)face_count;
+        for (auto fit = dsc.faces_begin(); fit != dsc.faces_end(); fit++) {
+            if (dsc.get(fit.key()).is_interface()) {
+                auto faceNodes = dsc.get_nodes(fit.key());
+                vec3 nodePos1 = dsc.get(faceNodes[0]).get_pos();
+                vec3 nodePos2 = dsc.get(faceNodes[1]).get_pos();
+                vec3 nodePos3 = dsc.get(faceNodes[2]).get_pos();
+                if (Util::area<real, vec3>(nodePos1, nodePos2, nodePos3) >= avg_area) {
+                    split_count++;
+                    dsc.split(fit.key());
+                }
+            }
+        }
+        dsc.set_avg_edge_length();
+        std::cout << "Total area of " << face_count << " interface faces: " << total_area << std::endl;
+        std::cout << "Split " << split_count << " faces with areas >= the average of " << avg_area << std::endl;
+        std::cout << "Average edge length reset to " << dsc.get_avg_edge_length() << std::endl;
+        std::cout << std::endl;
     }
 
     virtual void write_data_files(DSC::DeformableSimplicialComplex<>& dsc) {

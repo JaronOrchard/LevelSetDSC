@@ -384,37 +384,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
             break;
         }
         case 'p': { // Split all interface faces whose area is greater than the average
-            int face_count = 0;
-            int split_count = 0;
-            double total_area = 0;
-            for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
-                if (dsc->get(fit.key()).is_interface()) {
-                    face_count++;
-                    auto faceNodes = dsc->get_nodes(fit.key());
-                    vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
-                    vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
-                    vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
-                    total_area += Util::area<real, vec3>(nodePos1, nodePos2, nodePos3);
-                }
-            }
-            double avg_area = total_area / (double)face_count;
-            for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
-                if (dsc->get(fit.key()).is_interface()) {
-                    auto faceNodes = dsc->get_nodes(fit.key());
-                    vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
-                    vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
-                    vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
-                    if (Util::area<real, vec3>(nodePos1, nodePos2, nodePos3) >= avg_area) {
-                        split_count++;
-                        dsc->split(fit.key());
-                    }
-                }
-            }
-            dsc->set_avg_edge_length();
-            std::cout << "Total area of " << face_count << " interface faces: " << total_area << std::endl;
-            std::cout << "Split " << split_count << " faces with areas >= the average of " << avg_area << std::endl;
-            std::cout << "Average edge length reset to " << dsc->get_avg_edge_length() << std::endl;
-            std::cout << std::endl;
+            vel_fun->split_larger_than_average_interface_faces(*dsc);
             break;
         }
         case 'o':
@@ -440,38 +410,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
                     vel_fun->print_face_speed_stats(*dsc, true);
                 }
                 if (i % 100 == 74) {
-                    // === COPIED FROM 'p' ===
-                    int face_count = 0;
-                    int split_count = 0;
-                    double total_area = 0;
-                    for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
-                        if (dsc->get(fit.key()).is_interface()) {
-                            face_count++;
-                            auto faceNodes = dsc->get_nodes(fit.key());
-                            vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
-                            vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
-                            vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
-                            total_area += Util::area<real, vec3>(nodePos1, nodePos2, nodePos3);
-                        }
-                    }
-                    double avg_area = total_area / (double)face_count;
-                    for (auto fit = dsc->faces_begin(); fit != dsc->faces_end(); fit++) {
-                        if (dsc->get(fit.key()).is_interface()) {
-                            auto faceNodes = dsc->get_nodes(fit.key());
-                            vec3 nodePos1 = dsc->get(faceNodes[0]).get_pos();
-                            vec3 nodePos2 = dsc->get(faceNodes[1]).get_pos();
-                            vec3 nodePos3 = dsc->get(faceNodes[2]).get_pos();
-                            if (Util::area<real, vec3>(nodePos1, nodePos2, nodePos3) >= avg_area) {
-                                split_count++;
-                                dsc->split(fit.key());
-                            }
-                        }
-                    }
-                    dsc->set_avg_edge_length();
-                    std::cout << "Total area of " << face_count << " interface faces: " << total_area << std::endl;
-                    std::cout << "Split " << split_count << " faces with areas >= the average of " << avg_area << std::endl;
-                    std::cout << "Average edge length reset to " << dsc->get_avg_edge_length() << std::endl;
-                    std::cout << std::endl;
+                    vel_fun->split_larger_than_average_interface_faces(*dsc);
                 }
             }
             painter->update(*dsc);

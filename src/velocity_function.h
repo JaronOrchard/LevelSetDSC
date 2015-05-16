@@ -252,6 +252,13 @@ namespace DSC {
         virtual void write_data_files(DeformableSimplicialComplex& dsc) {
             std::cout << "** WRITE_DATA_FILES NOT IMPLEMENTED **" << std::endl;
         }
+
+        /**
+         * Splits interface faces whose area is larger than the average
+         */
+        virtual void split_larger_than_average_interface_faces(DeformableSimplicialComplex& dsc) {
+            std::cout << "** SPLIT_LARGER_THAN_AVERAGE_INTERFACE_FACES NOT IMPLEMENTED **" << std::endl;
+        }
         
     };
     
