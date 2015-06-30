@@ -6,6 +6,8 @@
 
 #include "velocity_function.h"
 
+using std::vector;
+
 /**
  A velocity function which moves the interface vertices towards a point cloud.
  */
@@ -21,11 +23,11 @@ private:
     const std::string log_path = "./LOG/";
 #endif
 
-    std::vector<vec3> point_cloud;
+    vector<vec3> point_cloud;
     
 
     // Variables:
-    std::string point_cloud_file_name = "new\\bunny.obj";
+    std::string point_cloud_file_name = "new\\teapot.obj";
     real scale_target = 0.9; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
     bool useAngularDefect = false;
@@ -181,7 +183,7 @@ private:
         real totalArea = 0;
         for (auto e : dsc.get_edges(nodeKey)) {
             if (dsc.get(e).is_interface()) { // For each interface edge around the vertex...
-                std::vector<vec3> sixFaceNodes;
+                vector<vec3> sixFaceNodes;
                 for (auto f : dsc.get(e).face_keys()) {
                     if (dsc.get(f).is_interface()) { // For both interface faces around that edge...
                         auto faceNodes = dsc.get_nodes(f);
@@ -230,6 +232,24 @@ private:
         totalArea /= 2; // (We added each face's area twice on purpose, so divide by 2 here)
         sum /= (4 * totalArea);
         return sum;
+    }
+
+    vector<vec3> getKClosestPoints(DSC::DeformableSimplicialComplex<>& dsc, vec3 point, int k) {
+        vector<vec3> closestPoints;
+        vec3 dummyPoint(9999, 9999, 9999);
+        for (int i = 0; i < k; i++) { closestPoints.push_back(dummyPoint); }
+        for (int i = 0; i < point_cloud.size(); i++) {
+            real curr_dist = (point_cloud[i] - point).length();
+            for (int j = 0; j < k; j++) {
+                real j_dist = (closestPoints[j] - point).length();
+                if (curr_dist < j_dist) {
+                    closestPoints.insert(closestPoints.begin() + j, point_cloud[i]);
+                    closestPoints.pop_back();
+                    break;
+                }
+            }
+        }
+        return closestPoints;
     }
 
 public:
@@ -445,6 +465,22 @@ public:
         }
         output_file.close();
         */
+    }
+
+    virtual void print_quality_measure(DSC::DeformableSimplicialComplex<>& dsc) {
+        int k = 8;
+        std::cout << std::endl << "** CALLING PRINT_QUALITY_MEASURE **" << std::endl;
+        for (auto nit = dsc.nodes_begin(); nit != dsc.nodes_end(); nit++)
+        {
+            if (dsc.is_movable(nit.key()))
+            {
+                vector<vec3> closestPoints = getKClosestPoints(dsc, nit->get_pos(), k);
+                std::cout << "** FOR POINT: " << nit->get_pos() << std::endl;
+                for (int i = 0; i < k; i++) {
+                    std::cout << "  ** " << (i + 1) << ": " << closestPoints[i] << " (dist: " << (closestPoints[i] - nit->get_pos()).length() << ")" << std::endl;
+                }
+            }
+        }
     }
 
     /**

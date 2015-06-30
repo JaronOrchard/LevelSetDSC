@@ -314,6 +314,10 @@ void UI::keyboard(unsigned char key, int x, int y) {
             std::cout << std::endl;
             break;
         }
+        case 'C': {
+            vel_fun->print_quality_measure(*dsc);
+            break;
+        }
         case 'n': {
             // Calculate the curvature for all nodes using Implicit Fairing's equation 14.
             int i = 0;

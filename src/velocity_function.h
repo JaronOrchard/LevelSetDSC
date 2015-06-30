@@ -259,6 +259,14 @@ namespace DSC {
         virtual void split_larger_than_average_interface_faces(DeformableSimplicialComplex& dsc) {
             std::cout << "** SPLIT_LARGER_THAN_AVERAGE_INTERFACE_FACES NOT IMPLEMENTED **" << std::endl;
         }
+
+        /**
+         * Prints quality measure of the current mesh
+         */
+        virtual void print_quality_measure(DeformableSimplicialComplex& dsc) {
+            std::cout << "** PRINT_QUALITY_MEASURE NOT IMPLEMENTED **" << std::endl;
+        }
+
         
     };
     

@@ -55,7 +55,8 @@ void printMenu(){
             "M (caps):  Take multiple time steps at once\n"<<
             "o:         Print speed of face centroids/vertices\n"<<
             "O (caps):  Split faces with fast centroids/slow verts\n"<<
-            "I (caps):  Write points/speed/curvature to file\n"<<endl;
+            "I (caps):  Write points/speed/curvature to file\n"<<
+            "C (caps):  Print quality measure of mesh\n"<<endl;
 }
 
 int main(int argc, char** argv)
