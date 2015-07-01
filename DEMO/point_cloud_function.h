@@ -5,8 +5,9 @@
 #pragma once
 
 #include "velocity_function.h"
-
+#include <utility>
 using std::vector;
+using std::pair;
 
 /**
  A velocity function which moves the interface vertices towards a point cloud.
@@ -234,7 +235,8 @@ private:
         return sum;
     }
 
-    vector<vec3> getKClosestPoints(DSC::DeformableSimplicialComplex<>& dsc, vec3 point, int k) {
+    vector< pair<vec3, real> > getKClosestPointsWithGaussianWeighting(DSC::DeformableSimplicialComplex<>& dsc, vec3 point, int k) {
+        // Gather points:
         vector<vec3> closestPoints;
         vec3 dummyPoint(9999, 9999, 9999);
         for (int i = 0; i < k; i++) { closestPoints.push_back(dummyPoint); }
@@ -249,7 +251,18 @@ private:
                 }
             }
         }
-        return closestPoints;
+        // Weight points:
+        vector< pair<vec3, real> > closestPointsWithWeighting;
+        real gaussian_weighting_constant = 10;
+        real best_dist = (closestPoints[0] - point).length();
+        for (int i = 0; i < k; i++) {
+            // We weight the points kind of like (e^-(s^2)) here.  However, we make two changes:
+            //  1) All dists are less than 1, so we add 1 to dist_diff before squaring it, then subtract 1 back to get a similar squaring effect
+            //  2) A x10 constant is applied to the above result
+            real dist_diff = (closestPoints[i] - point).length() - best_dist;
+            closestPointsWithWeighting.push_back(std::make_pair(closestPoints[i], exp(-1 * gaussian_weighting_constant * ((1+dist_diff)*(1+dist_diff)-1))));
+        }
+        return closestPointsWithWeighting;
     }
 
 public:
@@ -474,10 +487,12 @@ public:
         {
             if (dsc.is_movable(nit.key()))
             {
-                vector<vec3> closestPoints = getKClosestPoints(dsc, nit->get_pos(), k);
+                vector< pair<vec3, real> > closestPointsWithWeights = getKClosestPointsWithGaussianWeighting(dsc, nit->get_pos(), k);
                 std::cout << "** FOR POINT: " << nit->get_pos() << std::endl;
                 for (int i = 0; i < k; i++) {
-                    std::cout << "  ** " << (i + 1) << ": " << closestPoints[i] << " (dist: " << (closestPoints[i] - nit->get_pos()).length() << ")" << std::endl;
+                    std::cout << " * " << (i + 1) << ": " << closestPointsWithWeights[i].first
+                        << ", dist: " << (closestPointsWithWeights[i].first - nit->get_pos()).length()
+                        << ", weight: " << closestPointsWithWeights[i].second << std::endl;
                 }
             }
         }
