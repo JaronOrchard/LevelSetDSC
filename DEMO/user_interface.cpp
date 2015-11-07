@@ -152,6 +152,7 @@ void UI::load_model(const std::string& file_name, real discretization)
     real dist = 1.2*var;
     eye_pos = {dist, var, dist};
     camera_pos = {var, var, -dist};
+    per_step_screenshot_pos = {var*0.1, var*0.2, -dist*0.6};
     light_pos = {0., 0., dist};
     
     painter->update(*dsc);
@@ -404,6 +405,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
             break;
         case 'M': {
             int steps_to_take = 200;
+            bool save_obj_and_screenshot_after_every_step = true;
             std::cout << "MOVE (" << steps_to_take << " steps)" << std::endl;
             real total_time = 0.;
             for (int i = 0; i < steps_to_take; i++) {
@@ -416,6 +418,20 @@ void UI::keyboard(unsigned char key, int x, int y) {
                 //if (i % 100 == 74) {
                 //    vel_fun->split_larger_than_average_interface_faces(*dsc);
                 //}
+                if (save_obj_and_screenshot_after_every_step) {
+                    painter->update(*dsc);
+                    // Export screenshot:
+                    std::cout << "TAKING SCREEN SHOT " << (i+1) << std::endl;
+                    painter->set_view_position(per_step_screenshot_pos);
+                    painter->save_painting("LOG_PAPER", i+1);
+                    // Export .obj mesh:
+                    std::cout << "EXPORTING SURFACE MESH " << (i+1) << std::endl;
+                    std::string filename("LOG_PAPER/mesh" + std::string(Util::concat4digits("_", i+1)) + ".obj");
+                    std::vector<vec3> points;
+                    std::vector<int> faces;
+                    dsc->extract_surface_mesh(points, faces);
+                    is_mesh::export_surface_mesh(filename, points, faces);
+                }
             }
             painter->update(*dsc);
             std::cout << "Move complete.  Total elapsed time: " << total_time << " sec" << std::endl;

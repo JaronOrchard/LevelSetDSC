@@ -38,6 +38,7 @@ class UI
     
     vec3 eye_pos = {70., 30., 70.};
     vec3 camera_pos = {30., 30., 70.};
+    vec3 per_step_screenshot_pos = {30., 30., 70.};
     vec3 light_pos = {0., 0., 70.};
     
     int WIN_SIZE_X = 1280;
