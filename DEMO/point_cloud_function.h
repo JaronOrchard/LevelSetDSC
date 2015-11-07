@@ -29,6 +29,7 @@ private:
 
     // Variables:
     std::string point_cloud_file_name = "new\\teapot.obj";
+    //std::string point_cloud_file_name = "new\\bunny.obj";
     real scale_target = 0.9; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
     bool useAngularDefect = false;

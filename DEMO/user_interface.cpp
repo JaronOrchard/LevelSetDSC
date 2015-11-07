@@ -403,19 +403,19 @@ void UI::keyboard(unsigned char key, int x, int y) {
             painter->update(*dsc);
             break;
         case 'M': {
-            int steps_to_take = 100;
+            int steps_to_take = 200;
             std::cout << "MOVE (" << steps_to_take << " steps)" << std::endl;
             real total_time = 0.;
             for (int i = 0; i < steps_to_take; i++) {
                 std::cout << "Time step " << (i + 1) << "/" << steps_to_take << ", " << total_time << " sec elapsed so far" << std::endl;
                 vel_fun->take_time_step(*dsc);
                 total_time += vel_fun->get_deform_time();
-                if (i % 7 == 6) {
+                if (i % 4 == 3) {
                     vel_fun->print_face_speed_stats(*dsc, true);
                 }
-                if (i % 100 == 74) {
-                    vel_fun->split_larger_than_average_interface_faces(*dsc);
-                }
+                //if (i % 100 == 74) {
+                //    vel_fun->split_larger_than_average_interface_faces(*dsc);
+                //}
             }
             painter->update(*dsc);
             std::cout << "Move complete.  Total elapsed time: " << total_time << " sec" << std::endl;
