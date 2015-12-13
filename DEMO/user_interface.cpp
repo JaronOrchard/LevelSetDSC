@@ -477,7 +477,7 @@ void UI::keyboard(unsigned char key, int x, int y) {
         }
             break;
         case 'I': {
-            std::cout << "EXPORTING SPEED AND CURVATURE DATA" << std::endl;
+            std::cout << "EXPORTING SPEED/CURVATURE/DISTANCE DATA" << std::endl;
             vel_fun->write_data_files(*dsc);
         }
             break;

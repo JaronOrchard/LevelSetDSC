@@ -30,6 +30,10 @@ private:
     // Variables:
     std::string point_cloud_file_name = "new\\teapot.obj";
     //std::string point_cloud_file_name = "new\\bunny.obj";
+    //std::string point_cloud_file_name = "new\\cow.obj";
+    //std::string point_cloud_file_name = "new\\dragon.obj";
+    //std::string point_cloud_file_name = "new\\buddha.obj";
+    int use_every_nth_point_in_obj = 1;
     real scale_target = 0.9; // Outermost edge of imported .obj should reach this
     real alpha = 0.2;
     bool useAngularDefect = false;
@@ -53,11 +57,15 @@ private:
         } else {
             std::string temp;
             fin >> temp;
+            int obj_points_read = 0;
             while (!fin.eof()) {
                 if (temp == "v") { // Vertex
-                    real x, y, z; // The (x,y,z) coordinates of a vertex.
-                    fin >> x >> y >> z;
-                    point_cloud.push_back(vec3(x, y, z));
+                    obj_points_read++;
+                    if (obj_points_read % use_every_nth_point_in_obj == 0) {
+                        real x, y, z; // The (x,y,z) coordinates of a vertex.
+                        fin >> x >> y >> z;
+                        point_cloud.push_back(vec3(x, y, z));
+                    }
                 }
                 fin >> temp;
             }
@@ -446,10 +454,10 @@ public:
     }
 
     virtual void write_data_files(DSC::DeformableSimplicialComplex<>& dsc) {
-        std::string filename("data/speed_curvature_data.txt");
+        std::string filename("data/speed_curvature_distance_data.txt");
         std::ofstream output_file;
         output_file.open(filename.data());
-        output_file << "x_coord,y_coord,z_coord,speed,curvature" << std::endl;
+        output_file << "x_coord,y_coord,z_coord,speed,curvature,closest_dist" << std::endl;
 
         vec3 p_minus_x;
         vec3 point_normal;
@@ -463,7 +471,7 @@ public:
                 dot_product = point_normal[0] * p_minus_x[0] + point_normal[1] * p_minus_x[1] + point_normal[2] * p_minus_x[2];
                 real speed = alpha * dot_product;
                 output_file << nit->get_pos()[0] << "," << nit->get_pos()[1] << "," << nit->get_pos()[2] << ","
-                        << speed << "," << get_implicit_fairing_curvature(dsc, nit.key()) << std::endl;
+                        << speed << "," << get_implicit_fairing_curvature(dsc, nit.key()) << "," << p_minus_x.length() << std::endl;
             }
         }
         output_file.close();
